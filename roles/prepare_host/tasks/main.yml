@@ -17,6 +17,7 @@
 - name: Check if Docker installed
   command: rpm -q  docker-engine
   register: rpm_check
+  ignore_errors: True 
 
 - name: Install Docker
   command: bash /root/docker.sh

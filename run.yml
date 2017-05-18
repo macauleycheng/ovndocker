@@ -24,7 +24,7 @@
 - hosts: controller_hosts
   user: root
   tasks:
-    - name: Restart Neutron Server and L3 Agent
+    - name: Restart Neutron Server
       systemd:
         name: "{{ item }}"
         state: restarted

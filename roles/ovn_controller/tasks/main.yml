@@ -22,7 +22,7 @@
   delay: 5
 
 - name: Configure system-id
-  command: "docker exec ovn-controller ovs-vsctl set open . external-ids:system-id=$(hostname)"
+  command: "docker exec ovn-controller ovs-vsctl set open . external-ids:system-id={{ hostname }}"
 
 - name: Configure ovn-encap-type
   command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-encap-type=geneve,vxlan"
@@ -33,10 +33,13 @@
 - name: Set hostname
   command: "docker exec ovn-controller ovs-vsctl set Open_vSwitch . external-ids:hostname={{ hostname }}"
 
+- name: Add {{ ovn_bridge_mappings }}
+  command: "docker exec ovn-controller ovs-vsctl add-br {{ ovn_bridge_mappings }}"
+  when: inventory_hostname in groups['network_hosts']
+
 - name: Configure ovn-bridge-mappings
   command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-bridge-mappings={{ ovn_bridge_mappings }}"
   when: inventory_hostname in groups['network_hosts']
-
 
 - name: Stop and disable metadata, DHCP, and openvswitch agents
   systemd: name={{ item.name }} state={{ item.state }} enabled=no
@@ -45,3 +48,5 @@
     - { name: 'neutron-dhcp-agent', state: 'stopped' }
     - { name: 'neutron-openvswitch-agent', state: 'stopped' }
   ignore_errors: True
+
+
