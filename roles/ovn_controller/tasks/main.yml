@@ -22,7 +22,7 @@
   delay: 5
 
 - name: Configure system-id
-  command: "docker exec $controller ovs-vsctl set open . external-ids:system-id=$(hostname)"
+  command: "docker exec ovn-controller ovs-vsctl set open . external-ids:system-id=$(hostname)"
 
 - name: Configure ovn-encap-type
   command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-encap-type=geneve,vxlan"

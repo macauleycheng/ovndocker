@@ -16,6 +16,26 @@
     - ovn-nbctl set-connection ptcp:{{ ovn_northbound_port }}:{{ ovn_db_ip }}
     - ovn-sbctl set-connection ptcp:{{ ovn_southbound_port }}:{{ ovn_db_ip }}
 
+- name: Configure ovn-remote
+  command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-remote=tcp:{{ ovn_db_ip }}:{{ ovn_southbound_port }}"
+  register: task_result
+  until: task_result.rc == 0
+  retries: 10
+  delay: 5
+
+- name: Configure system-id
+  command: "docker exec ovn-controller ovs-vsctl set open . external-ids:system-id=$(hostname)"
+
+- name: Configure ovn-encap-type
+  command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-encap-type=geneve,vxlan"
+
+- name: Configure ovn-encap-ip
+  command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-encap-ip={{ ovn_node_ip }}"
+
+- name: Set hostname
+  command: "docker exec ovn-controller ovs-vsctl set Open_vSwitch . external-ids:hostname={{ hostname }}"
+
+
 - name: Update Neutron configuration files
   ini_file: dest={{ item.dest }} section={{ item.section }} option={{ item.option }} value={{ item.value }}
   with_items:
