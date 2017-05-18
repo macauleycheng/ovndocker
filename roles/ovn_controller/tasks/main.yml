@@ -49,4 +49,7 @@
     - { name: 'neutron-openvswitch-agent', state: 'stopped' }
   ignore_errors: True
 
+- name: Add ovsdb-listen local ip for Ocata L3 agent
+  command:  "docker exec ovn-controller ovs-appctl -t ovsdb-server ovsdb-server/add-remote ptcp:6640:127.0.0.1"
+
 
