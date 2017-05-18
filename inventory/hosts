@@ -30,3 +30,7 @@ ovn_bridge_mappings=public:br-ex
 #ovn docker image name
 ovn_controller_docker_image="ovn_controller.tar"
 ovn_northd_docker_image="ovn_northd.tar"
+
+
+#
+networking_ovn=python-networking-ovn

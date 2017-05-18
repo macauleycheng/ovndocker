@@ -62,6 +62,12 @@
     name: neutron-server
     state: stopped
 
+- name: Install Networking OVN
+  yum:
+    name: "{{ networking_ovn }}"
+    state: present
+
+
 - name: Sync Neutron state to OVN
   when: ovn_central is defined
   command: "{{ item }}"
