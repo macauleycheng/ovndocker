@@ -34,7 +34,7 @@
   command: "docker exec ovn-controller ovs-vsctl set Open_vSwitch . external-ids:hostname={{ hostname }}"
 
 - name: Add {{ ovn_bridge_mappings }}
-  command: "docker exec ovn-controller ovs-vsctl add-br {{ ovn_bridge_mappings }}"
+  command: "docker exec ovn-controller ovs-vsctl add-br {{ ovn_ex_bridge }}"
   when: inventory_hostname in groups['network_hosts']
 
 - name: Configure ovn-bridge-mappings
