@@ -1,0 +1,13 @@
+version: "2.1"
+services:
+  ovn_northd:
+    image: ovn-northd
+    container_name: ovn-northd
+    network_mode: "host"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /run:/run:shared 
+      - /lib/modules:/lib/modules:ro
+      - /var/log/openvswitch:/var/log/openvswitch
+    privileged: true
+

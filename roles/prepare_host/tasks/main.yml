@@ -1,0 +1,60 @@
+- name: stop openvswitch services
+  systemd:
+    name: openvswitch
+    state: stopped
+  ignore_errors: True
+
+
+- name: Copy Docker Files
+  copy:
+    src: "{{ item }}"
+    dest: /root/
+  with_items:
+    - "{{ ovn_northd_docker_image }}"
+    - "{{ ovn_controller_docker_image }}"
+    - docker.sh
+
+- name: Check if Docker installed
+  command: rpm -q  docker-engine
+  register: rpm_check
+
+- name: Install Docker
+  command: bash /root/docker.sh
+  when: rpm_check.stdout.find('is not installed') != -1
+
+- name: Start Docker Servier
+  systemd:
+    name: docker
+    state: restarted
+
+- name: Install PIP
+  yum:
+    name: python-pip
+    state: latest
+
+- name: Install Docker-Compose
+  pip:
+    name: docker-compose  
+
+- name: Copy northd composefile
+  copy:
+    src: ovn_northd_compose.yml
+    dest: /root/
+  when: inventory_hostname in groups['controller_hosts']
+
+- name: Copy conroller composefile
+  copy:
+    src: ovn_controller_compose.yml
+    dest: /root/
+
+- name: Create openvsitch used folder
+  command: mkdir -p /var/run/openvswitch
+
+- name: Load Docker controller Images
+  command: docker load -i /root/{{ ovn_controller_docker_image }}
+
+- name: Load Docker northd Images
+  command: docker load -i /root/{{ ovn_northd_docker_image }}
+  when: inventory_hostname in groups['controller_hosts']
+
+

@@ -1,0 +1,47 @@
+- name: Launch ovn_controller
+  command: docker-compose -f /root/ovn_controller_compose.yml up -d
+
+- name: Install L3 agent configuration
+  ini_file: dest={{ item.dest }} section={{ item.section }} option={{ item.option }} value={{ item.value }}
+  with_items:
+      - { dest: '/etc/neutron/l3_agent.ini', section: 'DEFAULT', option: 'interface_driver', value: 'openvswitch' }
+      - { dest: '/etc/neutron/l3_agent.ini', section: 'DEFAULT', option: 'ovs_use_veth', value: 'False' }
+      - { dest: '/etc/neutron/l3_agent.ini', section: 'DEFAULT', option: 'debug', value: 'True' }
+      - { dest: '/etc/neutron/l3_agent.ini', section: 'DEFAULT', option: 'external_network_bridge', value: '' }
+      - { dest: '/etc/neutron/l3_agent.ini', section: 'AGENT', option: 'root_helper_daemon', value: 'sudo /usr/bin/neutron-rootwrap-daemon /etc/neutron/rootwrap.conf' }
+      - { dest: '/etc/neutron/l3_agent.ini', section: 'AGENT', option: 'root_helper', value: 'sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf' }
+  when: inventory_hostname in groups['network_hosts']
+
+
+
+- name: Configure ovn-remote
+  command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-remote=tcp:{{ ovn_db_ip }}:{{ ovn_southbound_port }}"
+  register: task_result
+  until: task_result.rc == 0
+  retries: 10
+  delay: 5
+
+- name: Configure system-id
+  command: "docker exec $controller ovs-vsctl set open . external-ids:system-id=$(hostname)"
+
+- name: Configure ovn-encap-type
+  command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-encap-type=geneve,vxlan"
+
+- name: Configure ovn-encap-ip
+  command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-encap-ip={{ ovn_node_ip }}"
+
+- name: Set hostname
+  command: "docker exec ovn-controller ovs-vsctl set Open_vSwitch . external-ids:hostname={{ hostname }}"
+
+- name: Configure ovn-bridge-mappings
+  command: "docker exec ovn-controller ovs-vsctl set open . external_ids:ovn-bridge-mappings={{ ovn_bridge_mappings }}"
+  when: inventory_hostname in groups['network_hosts']
+
+
+- name: Stop and disable metadata, DHCP, and openvswitch agents
+  systemd: name={{ item.name }} state={{ item.state }} enabled=no
+  with_items:
+    - { name: 'neutron-metadata-agent', state: 'stopped' }
+    - { name: 'neutron-dhcp-agent', state: 'stopped' }
+    - { name: 'neutron-openvswitch-agent', state: 'stopped' }
+  ignore_errors: True

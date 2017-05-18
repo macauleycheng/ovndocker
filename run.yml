@@ -1,0 +1,42 @@
+- hosts: openstack
+  user: root
+  roles:
+    - prepare_host 
+
+- hosts: openstack
+  user: root 
+  tasks:
+    - name: Open Geneve UDP port for tunneling
+      command: iptables -I INPUT -m state --state NEW -p udp --dport 6081 -j ACCEPT
+    - name: Persist iptables changes after a reboot
+      shell: iptables-save > /etc/sysconfig/iptables.save
+
+- hosts: controller_hosts
+  user: root
+  roles:
+    - ovn_northd
+
+- hosts: compute_hosts:network_hosts
+  user: root
+  roles:
+    - ovn_controller
+
+- hosts: controller_hosts
+  user: root
+  tasks:
+    - name: Restart Neutron Server and L3 Agent
+      systemd:
+        name: "{{ item }}"
+        state: restarted
+      with_items:
+        - neutron-server
+
+- hosts: network_hosts
+  user: root
+  tasks:
+    - name: Restart L3 Agent
+      systemd:
+        name: "{{ item }}"
+        state: restarted
+      with_items:
+        - neutron-l3-agent
