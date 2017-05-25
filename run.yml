@@ -25,18 +25,14 @@
   user: root
   tasks:
     - name: Restart Neutron Server
-      systemd:
-        name: "{{ item }}"
-        state: restarted
+      command: docker start "{{ item }}"
       with_items:
-        - neutron-server
+        - neutron_server
 
-- hosts: network_hosts
-  user: root
-  tasks:
-    - name: Restart L3 Agent
-      systemd:
-        name: "{{ item }}"
-        state: restarted
-      with_items:
-        - neutron-l3-agent
+#- hosts: network_hosts
+#  user: root
+#  tasks:
+#    - name: Restart L3 Agent
+#      command: docker start "{{ item }}"
+#      with_items:
+#        - neutron_l3_agent

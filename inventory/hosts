@@ -4,14 +4,17 @@
 localhost ansible_connection=local
 
 [controller_hosts]
-node1 ansible_ssh_host=192.168.200.73
+kolla-2 ansible_ssh_host=192.168.200.88
 
 [compute_hosts]
-node2 ansible_ssh_host=192.168.200.74
-node3 ansible_ssh_host=192.168.200.75
+kolla-2 ansible_ssh_host=192.168.200.88
+kolla-3 ansible_ssh_host=192.168.200.89
+kolla-4 ansible_ssh_host=192.168.200.90
 
 [network_hosts]
-node3 ansible_ssh_host=192.168.200.75
+kolla-2 ansible_ssh_host=192.168.200.88
+kolla-3 ansible_ssh_host=192.168.200.89
+kolla-4 ansible_ssh_host=192.168.200.90
 
 [openstack:children]
 controller_hosts
@@ -19,7 +22,7 @@ compute_hosts
 network_hosts
 
 [openstack:vars]
-ovn_db_ip=192.168.200.73
+ovn_db_ip=192.168.200.88
 remote_db_port=6640
 ovn_southbound_port=6642
 ovn_northbound_port=6641
@@ -35,3 +38,6 @@ ovn_northd_docker_image="ovn_northd.tar"
 
 #
 networking_ovn=python-networking-ovn
+
+#
+docker_registry=192.168.200.87:5000
