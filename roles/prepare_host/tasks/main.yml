@@ -1,25 +1,30 @@
+- name: Delete br-tun, br-ex, br-int
+  command: docker exec openvswitch_vswitchd del-br br-ex
+  command: docker exec openvswitch_vswitchd del-br br-tun
+  command: docker exec openvswitch_vswitchd del-br br-int
+  ignore_errors: True
+
+- name: Stop and disable metadata, DHCP, and openvswitch agents
+  command: docker stop {{ item.name }}
+  with_items:
+      - { 'neutron_metadata_agent' }
+      - { 'neutron_dhcp_agent' }
+      - { 'neutron_openvswitch_agent' }
+  ignore_errors: True
+
 - name: stop openvswitch services
   command: docker stop openvswitch_vswitchd
-#  docker:
-#    name: openvswitch_vswitchd
-#    image: 192.168.200.87:5000/kolla/centos-binary-neutron-openvswitch-agent
-#    state: stopped
+  ignore_errors: True
 
 - name: stop openvswitch db
   command: docker stop openvswitch_db
-#  docker:
-#    name: openvswitch_db
-#    image: 192.168.200.87:5000/kolla/centos-binary-neutron-openvswitch-agent
-#    state: stopped
+  ignore_errors: True
 
 - name: stop openvswitch agent
   command: docker stop neutron_openvswitch_agent
-#  docker:
-#    name: neutron_openvswitch_agent
-#    image: 192.168.200.87:5000/kolla/centos-binary-neutron-openvswitch-agent
-#    state: stopped
+  ignore_errors: True
 
 - name: Create openvsitch used folder
   command: mkdir -p /var/run/openvswitch
-
+  ignore_errors: True
 
