@@ -1,29 +1,33 @@
 - name: pull ovn-northd
   command: docker pull {{ docker_registry }}/ovn-northd
+  when: inventory_hostname in groups['ovndb_hosts']
 
 - name: check ovn-northd is running
   command: docker ps
   register: run_ovn_northd
+  when: inventory_hostname in groups['ovndb_hosts']
 
 - name: launch ovn-northd
   command: docker run -d --privileged --net=host --name ovn-northd -v "/etc/localtime:/etc/localtime:ro"  -v "/run:/run:shared" -v "/lib/modules:/lib/modules:ro" -v /var/log/openvswitch:/var/log/openvswitch {{ docker_registry }}/ovn-northd 
-  when: run_ovn_northd.stdout.find('ovn-northd')==-1
+  when: (inventory_hostname in groups['ovndb_hosts']) and (run_ovn_northd.stdout.find('ovn-northd')==-1)
 
 - name: Open OVN database ports
   command: "iptables -I INPUT -m state --state NEW -p tcp --dport {{ item }} -j ACCEPT"
   with_items:
     - "{{ ovn_northbound_port }}"
     - "{{ ovn_southbound_port }}"
+  when: inventory_hostname in groups['ovndb_hosts']
 
 - name: Persist iptables changes after a reboot
   shell: iptables-save > /etc/sysconfig/iptables.save
+  when: inventory_hostname in groups['ovndb_hosts']
 
 - name: Enable remote access to northbound & southbound database
   command: "docker exec ovn-northd {{ item }}"
   with_items:
     - ovn-nbctl set-connection ptcp:{{ ovn_northbound_port }}:{{ ovn_db_ip }}
     - ovn-sbctl set-connection ptcp:{{ ovn_southbound_port }}:{{ ovn_db_ip }}
-
+  when: inventory_hostname in groups['ovndb_hosts']
 
 - name: Update Neutron configuration files
   ini_file: dest={{ item.dest }} section={{ item.section }} option={{ item.option }} value={{ item.value }}
@@ -49,15 +53,3 @@
 - name: Stop neutron-server to begin data sync to OVN
   command: docker stop neutron_server
 
-#- name: Install Networking OVN
-#  yum:
-#    name: "{{ networking_ovn }}"
-#    state: present
-
-
-- name: Sync Neutron state to OVN
-  when: ovn_central is defined
-  command: "docker exec ovn-northd {{ item }}"
-  with_items:
-    - neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade heads
-    - neutron-ovn-db-sync-util --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini

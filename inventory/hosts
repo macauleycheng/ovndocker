@@ -5,6 +5,8 @@ localhost ansible_connection=local
 
 [controller_hosts]
 kolla-2 ansible_ssh_host=192.168.200.88
+kolla-3 ansible_ssh_host=192.168.200.89
+kolla-4 ansible_ssh_host=192.168.200.90
 
 [compute_hosts]
 kolla-2 ansible_ssh_host=192.168.200.88
@@ -16,10 +18,14 @@ kolla-2 ansible_ssh_host=192.168.200.88
 kolla-3 ansible_ssh_host=192.168.200.89
 kolla-4 ansible_ssh_host=192.168.200.90
 
+[ovndb_hosts]
+kolla-2 ansible_ssh_host=192.168.200.88
+
 [openstack:children]
 controller_hosts
 compute_hosts
 network_hosts
+ovndb_hosts
 
 [openstack:vars]
 ovn_db_ip=192.168.200.88

@@ -36,3 +36,13 @@
 #      command: docker start "{{ item }}"
 #      with_items:
 #        - neutron_l3_agent
+
+- hosts: ovndb_hosts
+  user: root
+  tasks:
+    - name: Sync Neutron state to OVN
+      command: "docker exec neutron_server {{ item }}"
+      with_items:
+        - neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade heads
+        - neutron-ovn-db-sync-util --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini
+

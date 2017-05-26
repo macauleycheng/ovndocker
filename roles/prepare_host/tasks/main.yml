@@ -1,15 +1,17 @@
 - name: Delete br-tun, br-ex, br-int
-  command: docker exec openvswitch_vswitchd del-br br-ex
-  command: docker exec openvswitch_vswitchd del-br br-tun
-  command: docker exec openvswitch_vswitchd del-br br-int
+  command: "docker exec openvswitch_vswitchd ovs-vsctl del-br {{ item }}"
+  with_items:
+    - "br-ex"
+    - "br-int"
+    - "br-tun"
   ignore_errors: True
 
 - name: Stop and disable metadata, DHCP, and openvswitch agents
-  command: docker stop {{ item.name }}
+  command: docker stop {{ item }}
   with_items:
-      - { 'neutron_metadata_agent' }
-      - { 'neutron_dhcp_agent' }
-      - { 'neutron_openvswitch_agent' }
+      - "neutron_metadata_agent"
+      - "neutron_dhcp_agent"
+      - "neutron_openvswitch_agent"
   ignore_errors: True
 
 - name: stop openvswitch services
@@ -20,11 +22,10 @@
   command: docker stop openvswitch_db
   ignore_errors: True
 
-- name: stop openvswitch agent
-  command: docker stop neutron_openvswitch_agent
-  ignore_errors: True
-
 - name: Create openvsitch used folder
   command: mkdir -p /var/run/openvswitch
   ignore_errors: True
 
+- name: clear all items in openvswitch folder
+  command: rm -rf /var/run/openvswitch
+  ignore_errors: True
