@@ -3,13 +3,17 @@
   when: inventory_hostname in groups['ovndb_hosts']
 
 - name: check ovn-northd is running
-  command: docker ps
+  command: docker ps -a
   register: run_ovn_northd
   when: inventory_hostname in groups['ovndb_hosts']
 
 - name: launch ovn-northd
   command: docker run -d --privileged --net=host --name ovn-northd -v "/etc/localtime:/etc/localtime:ro"  -v "/run:/run:shared" -v "/lib/modules:/lib/modules:ro" -v /var/log/openvswitch:/var/log/openvswitch {{ docker_registry }}/ovn-northd 
   when: (inventory_hostname in groups['ovndb_hosts']) and (run_ovn_northd.stdout.find('ovn-northd')==-1)
+
+- name: restart ovn-northd
+  command: docker restart ovn-northd
+  when: (inventory_hostname in groups['ovndb_hosts']) and (run_ovn_northd.stdout.find('ovn-northd')!=-1)
 
 - name: Open OVN database ports
   command: "iptables -I INPUT -m state --state NEW -p tcp --dport {{ item }} -j ACCEPT"

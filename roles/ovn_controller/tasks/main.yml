@@ -2,13 +2,17 @@
   command: docker pull {{ docker_registry }}/ovn-controller
 
 - name: Check ovn-controller is running
-  command: docker ps
+  command: docker ps -a
   register: ovn_controller_run
 
-- name: start ovn-controller
+- name: launch ovn-controller
   command: docker run -d --privileged --net=host --name ovn-controller -v "/etc/localtime:/etc/localtime:ro"  -v "/run:/run:shared" -v "/lib/modules:/lib/modules:ro" -v /var/log/openvswitch:/var/log/openvswitch {{ docker_registry }}/ovn-controller
   when: ovn_controller_run.stdout.find('ovn-controller') == -1
 
+
+- name: restart ovn-controller
+  command: docker restart  ovn-controller
+  when: ovn_controller_run.stdout.find('ovn-controller') != -1  
 
 - name: Install L3 agent configuration
   ini_file: dest={{ item.dest }} section={{ item.section }} option={{ item.option }} value={{ item.value }}
