@@ -22,10 +22,10 @@
   command: docker stop openvswitch_db
   ignore_errors: True
 
-- name: Create openvsitch used folder
-  command: mkdir -p /var/run/openvswitch
-  ignore_errors: True
-
 - name: clear all items in openvswitch folder
   command: rm -rf /var/run/openvswitch
+  ignore_errors: True
+
+- name: Create openvsitch used folder
+  command: mkdir -p /var/run/openvswitch
   ignore_errors: True
