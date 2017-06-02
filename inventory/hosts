@@ -34,7 +34,7 @@ ovn_southbound_port=6642
 ovn_northbound_port=6641
 hostname= "{{ inventory_hostname }}"
 ovn_node_ip= "{{ ansible_default_ipv4.address }}"
-ovn_bridge_mappings=public:br-ex
+ovn_bridge_mappings=physnet1:br-ex
 ovn_ex_bridge=br-ex
 
 #ovn docker image name
